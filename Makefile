@@ -160,7 +160,7 @@ ifeq ($(OS), Haiku)
 CXXFLAGS += -D_DEFAULT_SOURCE
 endif
 
-YOSYS_VER := 0.54+23
+YOSYS_VER := 0.55+109
 YOSYS_MAJOR := $(shell echo $(YOSYS_VER) | cut -d'.' -f1)
 YOSYS_MINOR := $(shell echo $(YOSYS_VER) | cut -d'.' -f2 | cut -d'+' -f1)
 YOSYS_COMMIT := $(shell echo $(YOSYS_VER) | cut -d'+' -f2)
@@ -183,7 +183,7 @@ endif
 OBJS = kernel/version_$(GIT_REV).o
 
 bumpversion:
-	sed -i "/^YOSYS_VER := / s/+[0-9][0-9]*$$/+`git log --oneline db72ec3.. | wc -l`/;" Makefile
+	sed -i "/^YOSYS_VER := / s/+[0-9][0-9]*$$/+`git log --oneline 60f126c.. | wc -l`/;" Makefile
 
 ABCMKARGS = CC="$(CXX)" CXX="$(CXX)" ABC_USE_LIBSTDCXX=1 ABC_USE_NAMESPACE=abc VERBOSE=$(Q)
 
@@ -627,6 +627,7 @@ endif
 $(eval $(call add_include_file,libs/sha1/sha1.h))
 $(eval $(call add_include_file,libs/json11/json11.hpp))
 $(eval $(call add_include_file,passes/fsm/fsmdata.h))
+$(eval $(call add_include_file,passes/techmap/libparse.h))
 $(eval $(call add_include_file,frontends/ast/ast.h))
 $(eval $(call add_include_file,frontends/ast/ast_binding.h))
 $(eval $(call add_include_file,frontends/blif/blifparse.h))
@@ -980,6 +981,12 @@ unit-test: libyosys.so
 clean-unit-test:
 	@$(MAKE) -C $(UNITESTPATH) clean
 
+install-dev: $(PROGRAM_PREFIX)yosys-config share
+	$(INSTALL_SUDO) mkdir -p $(DESTDIR)$(BINDIR)
+	$(INSTALL_SUDO) cp $(PROGRAM_PREFIX)yosys-config $(DESTDIR)$(BINDIR)
+	$(INSTALL_SUDO) mkdir -p $(DESTDIR)$(DATDIR)
+	$(INSTALL_SUDO) cp -r share/. $(DESTDIR)$(DATDIR)/.
+
 install: $(TARGETS) $(EXTRA_TARGETS)
 	$(INSTALL_SUDO) mkdir -p $(DESTDIR)$(BINDIR)
 	$(INSTALL_SUDO) cp $(filter-out libyosys.so,$(TARGETS)) $(DESTDIR)$(BINDIR)
@@ -1222,5 +1229,5 @@ echo-cxx:
 
 FORCE:
 
-.PHONY: all top-all abc test install install-abc docs clean mrproper qtcreator coverage vcxsrc
+.PHONY: all top-all abc test install-dev install install-abc docs clean mrproper qtcreator coverage vcxsrc
 .PHONY: config-clean config-clang config-gcc config-gcc-static config-gprof config-sudo
